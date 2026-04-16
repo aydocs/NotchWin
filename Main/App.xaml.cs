@@ -20,7 +20,7 @@ namespace aydocs.NotchWin
         public static MMDevice? defaultDevice;
         public static MMDevice? defaultMicrophone;
 
-        public static string Version => "v1.6.2b4";
+        public static string Version => "v1.0.0";
 
         [STAThread]
         public static void Main()

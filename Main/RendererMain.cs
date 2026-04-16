@@ -34,8 +34,7 @@ namespace aydocs.NotchWin.Main
         private static RendererMain? instance;
         public static RendererMain? Instance => instance;
 
-        // Guard so the startup updater sequence runs only once per application lifetime
-        private static bool startupUpdaterSequenceStarted = false;
+
 
         public Vec2 renderOffset = Vec2.zero;
         public Vec2 scaleOffset = Vec2.one;
@@ -77,80 +76,6 @@ namespace aydocs.NotchWin.Main
 
             // Register to MainForm's centrally throttled render callback instead of subscribing directly to CompositionTarget.Rendering.
             MainForm.Instance.onMainFormRender += Frame;
-
-            // Start updater check sequence: wait 5s, show overlay, check for update, then open appropriate menu
-            // Ensure this sequence starts only once per application lifetime
-            // Only start automatic startup updater sequence if user opted in
-            if (!startupUpdaterSequenceStarted && Settings.AllowAutomaticUpdates)
-            {
-                startupUpdaterSequenceStarted = true;
-
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        await Task.Delay(5000);
-
-                        if (MenuManager.Instance.ActiveMenu is SettingsMenu)
-                        {
-                            // If user is in SettingsMenu, don't interrupt them with updater
-                            return;
-                        }
-
-                        // Show overlay manually
-                        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-                        {
-                            MenuManager.OpenOverlayMenu(new UpdaterOverlay(), 0f); // 0f = no auto-close
-                        });
-
-                        var updater = new Updater();
-                        AppVersion? update = null;
-
-                        try
-                        {
-                            update = await updater.CheckForUpdate();
-                        }
-                        catch { update = null; }
-
-                        // Close overlay & open correct menu
-                        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-                        {
-                            // Force overlay unlock
-                            MenuManager.CloseOverlay();
-
-                            // Force queued menus to process immediately
-                            if (MenuManager.Instance != null)
-                            {
-                                MenuManager.Instance.UnlockMenu();
-                            }
-
-                            if (update == null)
-                            {
-                                MenuManager.OpenMenu(Res.HomeMenu);
-                            }
-                            else
-                            {
-#if DEBUG
-                                Debug.WriteLine($"[UPDATER] Update received from remote: {update.version}");
-#endif
-                                MenuManager.OpenMenu(new UpdaterMenu(update));
-                            }
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-#if DEBUG
-                        Debug.WriteLine("[UPDATER] Updater sequence error: " + ex.Message);
-#endif
-                        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-                        {
-                            MenuManager.CloseOverlay();
-                            MenuManager.Instance?.UnlockMenu();
-                            MenuManager.OpenMenu(Res.HomeMenu);
-                        });
-                    }
-                });
-            }
 
             isInitialized = true;
         }
@@ -258,10 +183,6 @@ namespace aydocs.NotchWin.Main
                     active.UiObjects == null ||
                     active.UiObjects.Count == 0)
                 {
-                    // Allow UpdaterMenu to initialize without being overridden
-                    if (active is UpdaterMenu)
-                        return;
-
                     MenuManager.OpenMenu(Res.HomeMenu);
                 }
             }

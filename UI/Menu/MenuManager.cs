@@ -83,15 +83,14 @@ namespace aydocs.NotchWin.UI.Menu
             }
 
             // If trying to open a static menu that may have been disposed, re-create static menus
-            if ((newActiveMenu == Resources.Res.HomeMenu || newActiveMenu == Resources.Res.SettingsMenu)
+            if (newActiveMenu == Resources.Res.HomeMenu
                 && (Resources.Res.HomeMenu == null || Resources.Res.HomeMenu.UiObjects == null || Resources.Res.HomeMenu.UiObjects.Count == 0))
             {
                 try { Resources.Res.CreateStaticMenus(); }
                 catch { }
 
                 // Make sure it points to the newly created static menu instance
-                if (newActiveMenu == Resources.Res.HomeMenu) newActiveMenu = Resources.Res.HomeMenu;
-                if (newActiveMenu == Resources.Res.SettingsMenu) newActiveMenu = Resources.Res.SettingsMenu;
+                newActiveMenu = Resources.Res.HomeMenu;
             }
 
             SetActiveMenu(newActiveMenu);
@@ -260,7 +259,7 @@ namespace aydocs.NotchWin.UI.Menu
                 try
                 {
                     // Avoid disposing static menus created in Res to prevent restoring disposed instances later
-                    bool isStaticResMenu = (activeMenu == Resources.Res.HomeMenu || activeMenu == Resources.Res.SettingsMenu);
+                    bool isStaticResMenu = (activeMenu == Resources.Res.HomeMenu);
                     if (!isStaticResMenu)
                     {
                         // fully dispose the previous menu to destroy UIObjects and unsubscribe events
