@@ -96,16 +96,28 @@ namespace aydocs.NotchWin.UI.Menu.Menus
         float seconds = 0f;
         bool mute = false;
 
+        private float lastVolumeVal = -1;
+        private bool lastMuteVal = false;
+
         public override void Update()
         {
             base.Update();
 
             islandScale = Mathf.Lerp(islandScale, 1f, 5f * RendererMain.Instance.DeltaTime);
 
-            var volume = GetVolumePercent();
+            var volumeVal = (float)GetVolumePercent();
             var isMuted = IsMuted();
 
-            if (volume <= 0f || isMuted)
+            // Trigger vibration feedback on volume change or mute toggle
+            if (Math.Abs(volumeVal - lastVolumeVal) > 0.1f || isMuted != lastMuteVal)
+            {
+                seconds = 0f;
+                islandScale = 1.15f;
+                lastVolumeVal = volumeVal;
+                lastMuteVal = isMuted;
+            }
+
+            if (volumeVal <= 0f || isMuted)
             {
                 if (!mute)
                 {
@@ -121,7 +133,7 @@ namespace aydocs.NotchWin.UI.Menu.Menus
                 mutedBg.SetActive(true);
                 this.volume.SetActive(false);
             }
-            else if (volume >= 0f && !isMuted)
+            else if (volumeVal >= 0f && !isMuted)
             {
                 if (mute)
                 {
@@ -151,7 +163,7 @@ namespace aydocs.NotchWin.UI.Menu.Menus
 
             timerUntilClose += RendererMain.Instance.DeltaTime;
 
-            this.volume.value = (float)volume / 100f;
+            this.volume.value = (float)volumeVal / 100f;
 
             var volXOffset = KeyHandler.keyDown.Contains(System.Windows.Forms.Keys.VolumeUp) ? 2f :
                 KeyHandler.keyDown.Contains(System.Windows.Forms.Keys.VolumeDown) ? -2f : 0;
@@ -162,7 +174,7 @@ namespace aydocs.NotchWin.UI.Menu.Menus
 
         public override Vec2 IslandSize()
         {
-            return new Vec2(250, 35) * islandScale;
+            return new Vec2(250 * Settings.IslandWidthScale, 35) * islandScale;
         }
 
         public override Vec2 IslandSizeBig()

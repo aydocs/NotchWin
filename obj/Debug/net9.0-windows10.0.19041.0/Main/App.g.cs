@@ -58,7 +58,7 @@ namespace aydocs.NotchWin {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/NotchWin;component/main/app.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/NotchWin;V1.0.0.0;component/main/app.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Main\App.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

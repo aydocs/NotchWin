@@ -72,15 +72,36 @@ namespace aydocs.NotchWin.Utils
             if (Contains(key))
                 return data[key];
             else
-                return default;
+                return null;
+        }
+
+        public static T GetValue<T>(string key, T defaultValue = default)
+        {
+            if (!Contains(key)) return defaultValue;
+
+            try
+            {
+                var val = data[key];
+                if (val is T result) return result;
+
+                // Handle Newtonsoft types (like JArray, JObject, or numbers coming in as Int64)
+                if (val is Newtonsoft.Json.Linq.JToken token)
+                {
+                    return token.ToObject<T>();
+                }
+
+                // Generic conversion for other types (e.g., Int64 to Int32)
+                return (T)Convert.ChangeType(val, typeof(T));
+            }
+            catch
+            {
+                return defaultValue;
+            }
         }
 
         public static T Get<T>(string key)
         {
-            if (Contains(key))
-                return (T)JsonConvert.DeserializeObject<T>(cachedJsonSave);
-            else
-                return default(T);
+            return GetValue<T>(key);
         }
 
         public static bool Contains(string key)

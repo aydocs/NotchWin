@@ -93,28 +93,28 @@ namespace aydocs.NotchWin.Main
 
                 if (SaveManager.Contains("settings"))
                 {
-                    IslandMode = ((Int64)SaveManager.Get("settings.islandmode") == 0) ? IslandObject.IslandMode.Island : IslandObject.IslandMode.Notch;
+                    IslandMode = (SaveManager.GetValue<int>("settings.islandmode") == 0) ? IslandObject.IslandMode.Island : IslandObject.IslandMode.Notch;
 
-                    AllowBlur = (bool)SaveManager.Get("settings.allowblur");
-                    AllowAnimation = (bool)SaveManager.Get("settings.allowanimtion");
-                    AntiAliasing = (bool)SaveManager.Get("settings.antialiasing");
-                    ToggleHighRefreshRate = SaveManager.Contains("settings.ToggleHighRefreshRate") ? (bool)SaveManager.Get("settings.ToggleHighRefreshRate") : true;
-                    LimitRefreshRateWhenIdle = SaveManager.Contains("settings.LimitRefreshRateWhenIdle") ? (bool)SaveManager.Get("settings.LimitRefreshRateWhenIdle") : false;
-                    ToggleIslandShadow = SaveManager.Contains("settings.ToggleIslandShadow") ? (bool)SaveManager.Get("settings.ToggleIslandShadow") : true;
-                    ToggleHomeMenuShadow = SaveManager.Contains("settings.ToggleHomeMenuShadow") ? (bool)SaveManager.Get("settings.ToggleHomeMenuShadow") : true;
+                    AllowBlur = SaveManager.GetValue<bool>("settings.allowblur", true);
+                    AllowAnimation = SaveManager.GetValue<bool>("settings.allowanimation", true);
+                    AntiAliasing = SaveManager.GetValue<bool>("settings.antialiasing", true);
+                    ToggleHighRefreshRate = SaveManager.GetValue<bool>("settings.ToggleHighRefreshRate", true);
+                    LimitRefreshRateWhenIdle = SaveManager.GetValue<bool>("settings.LimitRefreshRateWhenIdle", false);
+                    ToggleIslandShadow = SaveManager.GetValue<bool>("settings.ToggleIslandShadow", true);
+                    ToggleHomeMenuShadow = SaveManager.GetValue<bool>("settings.ToggleHomeMenuShadow", true);
 
-                    RunOnStartup = (bool)SaveManager.Get("settings.runonstartup");
+                    RunOnStartup = SaveManager.GetValue<bool>("settings.runonstartup", false);
 
-                    AlwaysTopmost = SaveManager.Contains("settings.AlwaysTopmost") ? (bool)SaveManager.Get("settings.AlwaysTopmost") : true;
+                    AlwaysTopmost = SaveManager.GetValue<bool>("settings.AlwaysTopmost", true);
 
-                    IslandWidthScale = SaveManager.Contains("settings.IslandWidthScale") ? (float)SaveManager.Get("settings.IslandWidthScale") : 1.0f;
+                    IslandWidthScale = SaveManager.GetValue<float>("settings.IslandWidthScale", 1.0f);
 
-                    Theme = (int)((Int64)SaveManager.Get("settings.theme"));
-                    ScreenIndex = (int)((Int64)SaveManager.Get("settings.screenindex"));
+                    Theme = SaveManager.GetValue<int>("settings.theme", 0);
+                    ScreenIndex = SaveManager.GetValue<int>("settings.screenindex", 0);
 
                     if (SaveManager.Contains("settings.DefaultBigMenuMode"))
                     {
-                        int mode = (int)(Int64)SaveManager.Get("settings.DefaultBigMenuMode");
+                        int mode = SaveManager.GetValue<int>("settings.DefaultBigMenuMode");
                         if (Enum.IsDefined(typeof(HomeMenu.BigMenuMode), mode))
                             DefaultBigMenuMode = (HomeMenu.BigMenuMode)mode;
                         else
@@ -130,31 +130,29 @@ namespace aydocs.NotchWin.Main
                     Settings.smallWidgetsMiddle = new List<string>();
                     Settings.bigWidgets = new List<string>();
 
-                    var smallWidgetsLeft = (JArray)SaveManager.Get("settings.smallwidgetsleft");
-                    var smallWidgetsRight = (JArray)SaveManager.Get("settings.smallwidgetsright");
-                    var smallWidgetsMiddle = (JArray)SaveManager.Get("settings.smallwidgetsmiddle");
-                    var bigWidgets = (JArray)SaveManager.Get("settings.bigwidgets");
+                    var swLeftArr = SaveManager.GetValue<JArray>("settings.smallwidgetsleft");
+                    var swRightArr = SaveManager.GetValue<JArray>("settings.smallwidgetsright");
+                    var swMiddleArr = SaveManager.GetValue<JArray>("settings.smallwidgetsmiddle");
+                    var bwArr = SaveManager.GetValue<JArray>("settings.bigwidgets");
 
-                    foreach (var x in smallWidgetsLeft)
-                        Settings.smallWidgetsLeft.Add(x.ToString());
-                    foreach (var x in smallWidgetsRight)
-                        Settings.smallWidgetsRight.Add(x.ToString());
-                    foreach (var x in smallWidgetsMiddle)
-                        Settings.smallWidgetsMiddle.Add(x.ToString());
-                    foreach (var x in bigWidgets)
-                        Settings.bigWidgets.Add(x.ToString());
+                    if (swLeftArr != null)
+                        foreach (var x in swLeftArr) Settings.smallWidgetsLeft.Add(x.ToString());
+                    if (swRightArr != null)
+                        foreach (var x in swRightArr) Settings.smallWidgetsRight.Add(x.ToString());
+                    if (swMiddleArr != null)
+                        foreach (var x in swMiddleArr) Settings.smallWidgetsMiddle.Add(x.ToString());
+                    if (bwArr != null)
+                        foreach (var x in bwArr) Settings.bigWidgets.Add(x.ToString());
+
+                    // If lists are still empty after loading (e.g. key missing or empty array), load defaults
+                    if (Settings.smallWidgetsLeft.Count == 0 && Settings.smallWidgetsRight.Count == 0 && Settings.smallWidgetsMiddle.Count == 0)
+                    {
+                        LoadDefaultWidgets();
+                    }
                 }
                 else
                 {
-                    smallWidgetsLeft = new List<string>();
-                    smallWidgetsRight = new List<string>();
-                    smallWidgetsMiddle = new List<string>();
-                    bigWidgets = new List<string>();
-
-                    smallWidgetsRight.Add("aydocs.NotchWin.UI.Widgets.Small.RegisterSmallVisualiserWidget");
-                    smallWidgetsLeft.Add("aydocs.NotchWin.UI.Widgets.Small.RegisterMediaThumbnailWidget");
-                    bigWidgets.Add("aydocs.NotchWin.UI.Widgets.Big.RegisterWeatherWidget");
-                    bigWidgets.Add("aydocs.NotchWin.UI.Widgets.Big.RegisterTimerWidget");
+                    LoadDefaultWidgets();
 
                     IslandMode = IslandObject.IslandMode.Island;
                     AllowBlur = true;
@@ -176,15 +174,29 @@ namespace aydocs.NotchWin.Main
                 AfterSettingsLoaded();
             }catch(Exception e)
             {
-                MessageBox.Show("An error occured trying to load the settings. Please revert back to the default settings by deleting the \"Settings.json\" file located under \"%appdata%/aydocs.NotchWin/\".");
+                MessageBox.Show("An error occurred trying to load the settings. Please revert back to the default settings by deleting the \"Settings.json\" file located under \"%appdata%/aydocs.NotchWin/\".");
 
-                smallWidgetsLeft = new List<string>();
-                smallWidgetsRight = new List<string>();
-                smallWidgetsMiddle = new List<string>();
-                bigWidgets = new List<string>();
+                LoadDefaultWidgets();
 
                 AfterSettingsLoaded();
             }
+        }
+
+        private static void LoadDefaultWidgets()
+        {
+            smallWidgetsLeft = new List<string>();
+            smallWidgetsRight = new List<string>();
+            smallWidgetsMiddle = new List<string>();
+            bigWidgets = new List<string>();
+
+            smallWidgetsRight.Add("aydocs.NotchWin.UI.Widgets.Small.RegisterSmallVisualiserWidget");
+            smallWidgetsRight.Add("aydocs.NotchWin.UI.Widgets.Small.RegisterNetworkWidget");
+            smallWidgetsRight.Add("aydocs.NotchWin.UI.Widgets.Small.RegisterFinanceWidget");
+            smallWidgetsLeft.Add("aydocs.NotchWin.UI.Widgets.Small.RegisterMediaThumbnailWidget");
+            smallWidgetsMiddle.Add("aydocs.NotchWin.UI.Widgets.Small.RegisterCalendarWidget");
+            bigWidgets.Add("aydocs.NotchWin.UI.Widgets.Big.RegisterWeatherWidget");
+            bigWidgets.Add("aydocs.NotchWin.UI.Widgets.Big.RegisterTimerWidget");
+            bigWidgets.Add("aydocs.NotchWin.UI.Widgets.Big.RegisterTasksWidget");
         }
 
         static void AfterSettingsLoaded()
@@ -257,7 +269,7 @@ namespace aydocs.NotchWin.Main
             SaveManager.Add("settings.islandmode", (IslandMode == IslandObject.IslandMode.Island) ? 0 : 1);
 
             SaveManager.Add("settings.allowblur", AllowBlur);
-            SaveManager.Add("settings.allowanimtion", AllowAnimation);
+            SaveManager.Add("settings.allowanimation", AllowAnimation);
             SaveManager.Add("settings.antialiasing", AntiAliasing);
             SaveManager.Add("settings.ToggleHighRefreshRate", ToggleHighRefreshRate);
             SaveManager.Add("settings.LimitRefreshRateWhenIdle", LimitRefreshRateWhenIdle);

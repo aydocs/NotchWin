@@ -42,16 +42,9 @@ namespace aydocs.NotchWin.UI.Menu.Menus
 
         public override Vec2 IslandSize()
         {
-            Vec2 size = new Vec2(200 * Settings.IslandWidthScale, 35);
+            Vec2 size = new Vec2(200 * Settings.IslandWidthScale, 45);
 
-            float sizeTogether = 0f;
-            smallLeftWidgets.ForEach(x => sizeTogether += x.GetWidgetSize().X);
-            smallRightWidgets.ForEach(x => sizeTogether += x.GetWidgetSize().X);
-            smallCenterWidgets.ForEach(x => sizeTogether += x.GetWidgetSize().X);
-
-            sizeTogether += smallWidgetsSpacing * (smallCenterWidgets.Count + smallLeftWidgets.Count + smallRightWidgets.Count + 0.25f) + middleWidgetsSpacing;
-
-            size.X = (float)Math.Max(size.X, sizeTogether) + songSizeAddition;
+            size.X = size.X + songSizeAddition;
 
             return size;
         }

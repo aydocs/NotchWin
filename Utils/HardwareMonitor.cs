@@ -6,11 +6,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace aydocs.NotchWin.Utils
 {
     internal class HardwareMonitor
     {
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private class MEMORYSTATUSEX
+        {
+            public uint dwLength;
+            public uint dwMemoryLoad;
+            public ulong ullTotalPhys;
+            public ulong ullAvailPhys;
+            public ulong ullTotalPageFile;
+            public ulong ullAvailPageFile;
+            public ulong ullTotalVirtual;
+            public ulong ullAvailVirtual;
+            public ulong ullAvailExtendedVirtual;
+            public MEMORYSTATUSEX()
+            {
+                this.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+            }
+        }
+
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+
         private Timer timer;
 
         public static string usageString = " ";
@@ -24,10 +47,7 @@ namespace aydocs.NotchWin.Utils
         private readonly object _lock = new object();
 
         private IHardware? cpuHardware;
-        private IHardware? memoryHardware;
         private ISensor? cpuLoadSensor;
-        private ISensor? memoryUsedSensor;
-        private ISensor? memoryAvailableSensor;
 
         private const int IntervalMs = 1500;
 
@@ -77,17 +97,6 @@ namespace aydocs.NotchWin.Utils
                             }
                         }
                     }
-                    else if (hw.HardwareType == HardwareType.Memory && memoryHardware == null)
-                    {
-                        memoryHardware = hw;
-                        foreach (var s in hw.Sensors)
-                        {
-                            if (s.Name == "Memory Used")
-                                memoryUsedSensor = s;
-                            else if (s.Name == "Memory Available")
-                                memoryAvailableSensor = s;
-                        }
-                    }
 
                     if (hw.SubHardware != null && hw.SubHardware.Length > 0)
                     {
@@ -107,21 +116,10 @@ namespace aydocs.NotchWin.Utils
                                     }
                                 }
                             }
-                            else if (sub.HardwareType == HardwareType.Memory && memoryHardware == null)
-                            {
-                                memoryHardware = sub;
-                                foreach (var s in sub.Sensors)
-                                {
-                                    if (s.Name == "Memory Used")
-                                        memoryUsedSensor = s;
-                                    else if (s.Name == "Memory Available")
-                                        memoryAvailableSensor = s;
-                                }
-                            }
                         }
                     }
 
-                    if (cpuHardware != null && memoryHardware != null && cpuLoadSensor != null && memoryUsedSensor != null && memoryAvailableSensor != null)
+                    if (cpuHardware != null && cpuLoadSensor != null)
                         break;
                 }
             }
@@ -148,7 +146,7 @@ namespace aydocs.NotchWin.Utils
 #if DEBUG
                 Debug.WriteLine($"HardwareMonitor BEGIN");
 #endif
-                if (cpuHardware == null || memoryHardware == null || cpuLoadSensor == null || memoryUsedSensor == null || memoryAvailableSensor == null)
+                if (cpuHardware == null || cpuLoadSensor == null)
                 {
                     InitializeSensors();
                 }
@@ -166,25 +164,19 @@ namespace aydocs.NotchWin.Utils
                     catch { /* tolerate sensor update failures */ }
                 }
 
-                if (memoryHardware != null)
+                try
                 {
-                    try
+                    MEMORYSTATUSEX memStatus = new MEMORYSTATUSEX();
+                    if (GlobalMemoryStatusEx(memStatus))
                     {
-                        memoryHardware.Update();
+                        double totalPhysGB = memStatus.ullTotalPhys / (1024.0 * 1024.0 * 1024.0);
+                        double availPhysGB = memStatus.ullAvailPhys / (1024.0 * 1024.0 * 1024.0);
+                        double usedPhysGB = totalPhysGB - availPhysGB;
 
-                        float memUsed = 0;
-                        float memFree = 0;
-
-                        if (memoryUsedSensor != null && memoryUsedSensor.Value.HasValue)
-                            memUsed = Mathf.LimitDecimalPoints((float)memoryUsedSensor.Value.GetValueOrDefault(), 1);
-
-                        if (memoryAvailableSensor != null && memoryAvailableSensor.Value.HasValue)
-                            memFree = Mathf.LimitDecimalPoints((float)memoryAvailableSensor.Value.GetValueOrDefault(), 1);
-
-                        lastRam = memUsed + "GB / " + Mathf.LimitDecimalPoints(memFree + memUsed, 0) + "GB";
+                        lastRam = Mathf.LimitDecimalPoints((float)usedPhysGB, 1) + "GB / " + Mathf.LimitDecimalPoints((float)totalPhysGB, 0) + "GB";
                     }
-                    catch { }
                 }
+                catch { }
 
                 usageString = $"CPU: {lastCpu}%    RAM: {lastRam}";
 
