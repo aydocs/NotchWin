@@ -228,7 +228,8 @@ namespace aydocs.NotchWin.UI.Menu.Menus
 
             var settingsButton = new DWImageButton(topContainer, Resources.Res.Settings, new Vec2(-20f, 0), new Vec2(20, 20), () =>
             {
-                MenuManager.OpenMenu(new SettingsMenu());
+                var settingsWindow = new SettingsWindow();
+                settingsWindow.Show();
 
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine("[HOME MENU] User opened Settings menu.");

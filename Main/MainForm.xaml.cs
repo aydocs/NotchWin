@@ -99,8 +99,8 @@ namespace aydocs.NotchWin.Main
             this.Topmost = true;
             this.AllowsTransparency = true;
             this.ShowInTaskbar = false;
-            this.Title = "aydocs.NotchWin-Legacy Overlay";
-            this.Icon = BitmapFrame.Create(new Uri(NotchWinMain.ReleaseStream.GetIconPath(), UriKind.Relative));
+            this.Title = "aydocs.NotchWin Overlay";
+            this.Icon = BitmapFrame.Create(new Uri("Resources/icons/cog.ico", UriKind.Relative));
 
             // Loaded event to ensure that this does not show the application on the Alt+Tab switcher
 
@@ -124,7 +124,7 @@ namespace aydocs.NotchWin.Main
 
             // Tray icon setup
             _trayIcon.Icon = new System.Drawing.Icon("Resources/icons/cog.ico");
-            _trayIcon.Text = "aydocs.NotchWin-Legacy";
+            _trayIcon.Text = "aydocs.NotchWin";
 
             _trayIcon.ContextMenuStrip = new Forms.ContextMenuStrip();
 
@@ -150,7 +150,8 @@ namespace aydocs.NotchWin.Main
             _settingsTrayItem.Image = ContextMenuUtils.LoadTrayBitmap("Resources/icons/context/cog.png");
             _settingsTrayItem.Click += (x, y) =>
             {
-                MenuManager.OpenMenu(new SettingsMenu());
+                var settingsWindow = new SettingsWindow();
+                settingsWindow.Show();
             };
 
             _trayIcon.ContextMenuStrip.Items.Add(_settingsTrayItem);
@@ -168,17 +169,7 @@ namespace aydocs.NotchWin.Main
             _appBar.Register();
         }
 
-        public void UpdateTrayButtons()
-        {
-            if (MenuManager.Instance.ActiveMenu is UpdaterMenu)
-            {
-                _settingsTrayItem.Enabled = false;
-            }
-            else
-            {
-                _settingsTrayItem.Enabled = true;
-            }
-        }
+
 
         public void SetMonitor(int monitorIndex)
         {

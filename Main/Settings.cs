@@ -26,8 +26,6 @@ namespace aydocs.NotchWin.Main
         private static bool runOnStartup;
         private static int theme;
         private static int activeScreenIndex;
-        private static int releaseStream;
-        private static bool allowAutomaticUpdates = true;
         private static bool alwaysTopmost;
 
         public static IslandObject.IslandMode IslandMode { get => islandMode; set => islandMode = value; }
@@ -41,8 +39,6 @@ namespace aydocs.NotchWin.Main
         public static bool RunOnStartup { get => runOnStartup; set => runOnStartup = value; }
         public static int Theme { get => theme; set => theme = value; }
         public static int ScreenIndex { get => activeScreenIndex; set => activeScreenIndex = value; }
-        public static int ReleaseStream { get => releaseStream; set => releaseStream = value; }
-        public static bool AllowAutomaticUpdates { get => allowAutomaticUpdates; set => allowAutomaticUpdates = value; }
         public static bool AlwaysTopmost
         {
             get => alwaysTopmost;
@@ -106,13 +102,10 @@ namespace aydocs.NotchWin.Main
 
                     RunOnStartup = (bool)SaveManager.Get("settings.runonstartup");
 
-                    AllowAutomaticUpdates = SaveManager.Contains("settings.AllowAutomaticUpdates") ? (bool)SaveManager.Get("settings.AllowAutomaticUpdates") : true;
-
                     AlwaysTopmost = SaveManager.Contains("settings.AlwaysTopmost") ? (bool)SaveManager.Get("settings.AlwaysTopmost") : true;
 
                     Theme = (int)((Int64)SaveManager.Get("settings.theme"));
                     ScreenIndex = (int)((Int64)SaveManager.Get("settings.screenindex"));
-                    ReleaseStream = SaveManager.Contains("settings.ReleaseStream") ? (int)((Int64)SaveManager.Get("settings.ReleaseStream")) : 0;
 
                     if (SaveManager.Contains("settings.DefaultBigMenuMode"))
                     {
@@ -166,10 +159,6 @@ namespace aydocs.NotchWin.Main
                     LimitRefreshRateWhenIdle = true;
                     ToggleIslandShadow = true;
                     ToggleHomeMenuShadow = false;
-                    ReleaseStream = 0;
-
-                    // default automatic updates enabled
-                    AllowAutomaticUpdates = true;
                     AlwaysTopmost = true;
 
                     Theme = 0;
@@ -197,12 +186,65 @@ namespace aydocs.NotchWin.Main
         {
             aydocs.NotchWin.Utils.Theme.Instance.UpdateTheme();
 
-            var customOptions = SettingsMenu.LoadCustomOptions();
+            var customOptions = LoadCustomOptions();
 
             foreach (var item in customOptions)
             {
                 item.LoadSettings();
             }
+        }
+
+        private static List<IRegisterableSetting>? _cachedCustomOptions;
+        public static List<IRegisterableSetting> LoadCustomOptions()
+        {
+            if (_cachedCustomOptions != null) return _cachedCustomOptions;
+
+            _cachedCustomOptions = new List<IRegisterableSetting>();
+
+            var registerableSettings = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => typeof(IRegisterableSetting).IsAssignableFrom(p) && p.IsClass);
+
+            foreach (var option in registerableSettings)
+            {
+                try
+                {
+                    var optionInstance = (IRegisterableSetting)Activator.CreateInstance(option)!;
+                    _cachedCustomOptions.Add(optionInstance);
+                }
+                catch { }
+            }
+
+            var dirPath = System.IO.Path.Combine(SaveManager.SavePath, "Extensions");
+
+            if (!System.IO.Directory.Exists(dirPath))
+            {
+                System.IO.Directory.CreateDirectory(dirPath);
+            }
+            else
+            {
+                foreach (var file in System.IO.Directory.GetFiles(dirPath))
+                {
+                    if (System.IO.Path.GetExtension(file).ToLower().Equals(".dll"))
+                    {
+                        try
+                        {
+                            var DLL = System.Reflection.Assembly.LoadFile(System.IO.Path.Combine(dirPath, file));
+                            var dllRegisterableSettings = DLL.GetTypes()
+                                .Where(p => typeof(IRegisterableSetting).IsAssignableFrom(p) && p.IsClass);
+
+                            foreach (var option in dllRegisterableSettings)
+                            {
+                                var optionInstance = (IRegisterableSetting)Activator.CreateInstance(option)!;
+                                _cachedCustomOptions.Add(optionInstance);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            return _cachedCustomOptions;
         }
 
         public static void Save()
@@ -217,9 +259,6 @@ namespace aydocs.NotchWin.Main
             SaveManager.Add("settings.ToggleIslandShadow", ToggleIslandShadow);
             SaveManager.Add("settings.ToggleHomeMenuShadow", ToggleHomeMenuShadow);
             SaveManager.Add("settings.runonstartup", RunOnStartup);
-            SaveManager.Add("settings.ReleaseStream", ReleaseStream);
-
-            SaveManager.Add("settings.AllowAutomaticUpdates", AllowAutomaticUpdates);
             SaveManager.Add("settings.AlwaysTopmost", AlwaysTopmost);
 
             SaveManager.Add("settings.theme", Theme);
