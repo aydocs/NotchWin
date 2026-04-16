@@ -6,6 +6,8 @@ using System.Windows.Shapes;
 using aydocs.NotchWin.Main;
 using aydocs.NotchWin.Utils;
 using aydocs.NotchWin.UI.UIElements;
+using aydocs.NotchWin.UI.Menu;
+using aydocs.NotchWin.UI.Menu.Menus;
 
 namespace aydocs.NotchWin.UI
 {
@@ -68,8 +70,23 @@ namespace aydocs.NotchWin.UI
             };
             sizeSlider.ValueChanged += (s, e) =>
             {
-                Settings.IslandWidthScale = (float)sizeSlider.Value;
+                float newScale = (float)sizeSlider.Value;
+                Settings.IslandWidthScale = newScale;
                 sizeLabel.Text = $"Width: {Settings.IslandWidthScale:F2}x";
+
+                // Force immediate island update
+                try
+                {
+                    if (RendererMain.Instance?.MainIsland != null)
+                    {
+                        // Trigger a menu update cycle
+                        if (MenuManager.Instance?.ActiveMenu is HomeMenu homeMenu)
+                        {
+                            homeMenu.Update();
+                        }
+                    }
+                }
+                catch { }
             };
             SettingsContent.Children.Add(sizeSlider);
             AddDescription("Adjust the horizontal size of the island (0.5x - 2.5x)");
