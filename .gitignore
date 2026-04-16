@@ -1,11 +1,16 @@
+# Visual Studio
 .vs/
-/DynamicWin/bin/
-/DynamicWin/obj/
-/DynamicWinSetup
-/DynamicWin-Legacy-Updater/bin/Debug/net9.0
-/DynamicWin-Legacy-Updater/obj/Debug/net9.0
-/DynamicWin-Legacy-Updater/obj/Release/net9.0
-/DynamicWin-Legacy-Updater/obj/Release/net9.0/.NETCoreApp,Version=v9.0.AssemblyAttributes.cs
-/DynamicWin-Legacy-Updater/obj
-/Updater/obj/Debug
-/Updater/obj
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NotchWin specific
+NotchWin/bin/
+NotchWin/obj/
+
+# General ignores
+*.log
+.DS_Store
