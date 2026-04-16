@@ -1,0 +1,22 @@
+
+# Visual Studio / .NET
+bin/
+obj/
+debug/
+release/
+*.suo
+*.user
+*.props
+*.targets
+.vs/
+.idea/
+.vscode/
+
+# Build artifacts
+*.exe
+*.dll
+*.pdb
+
+# Local settings
+Settings.json
+CustomTheme_DoNotRename_EditThis.json
