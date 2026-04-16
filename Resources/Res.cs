@@ -74,7 +74,7 @@ namespace aydocs.NotchWin.Resources
         public static List<IRegisterableWidget> availableBigWidgets;
         public static List<IRegisterableWidget> availableSmallWidgets;
 
-        public static List<Iaydocs.NotchWinExtension> extensions;
+        public static List<INotchWinExtension> extensions;
 
         public static void CreateStaticMenus()
         {
@@ -142,7 +142,7 @@ namespace aydocs.NotchWin.Resources
         {
             availableBigWidgets = new List<IRegisterableWidget>();
             availableSmallWidgets = new List<IRegisterableWidget>();
-            extensions = new List<Iaydocs.NotchWinExtension>();
+            extensions = new List<INotchWinExtension>();
 
             var registerableWidgets = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(s => s.GetTypes())
@@ -179,11 +179,11 @@ namespace aydocs.NotchWin.Resources
 
                         var extensions = DLL
                             .SelectMany(s => s.GetTypes())
-                            .Where(p => typeof(Iaydocs.NotchWinExtension).IsAssignableFrom(p) && p.IsClass);
+                            .Where(p => typeof(INotchWinExtension).IsAssignableFrom(p) && p.IsClass);
 
                         foreach (var registerableExtension in extensions)
                         {
-                            var iRegisterableExtensionInstance = (Iaydocs.NotchWinExtension)Activator.CreateInstance(registerableExtension);
+                            var iRegisterableExtensionInstance = (INotchWinExtension)Activator.CreateInstance(registerableExtension);
                             System.Diagnostics.Debug.WriteLine($"Extension sucessfully registered: {iRegisterableExtensionInstance.ExtensionName}");
                             Res.extensions.Add(iRegisterableExtensionInstance);
 

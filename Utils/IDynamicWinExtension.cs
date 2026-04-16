@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace aydocs.NotchWin.Utils
 {
-    public interface Iaydocs.NotchWinExtension
+    public interface INotchWinExtension
     {
         public string AuthorName { get; }
         public string ExtensionName { get; }

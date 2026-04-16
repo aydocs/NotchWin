@@ -3,7 +3,6 @@ using aydocs.NotchWin.UI.Menu;
 using aydocs.NotchWin.UI.Menu.Menus;
 using aydocs.NotchWin.Utils;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +16,7 @@ namespace aydocs.NotchWin.Main
     public partial class MainForm : Window
     {
         private static MainForm instance;
+        private AppBarManager? _appBar;
         public static MainForm Instance { get => instance; }
 
         public static Action<System.Windows.Input.MouseWheelEventArgs> onScrollEvent;
@@ -162,6 +162,10 @@ namespace aydocs.NotchWin.Main
             });
 
             _trayIcon.Visible = true;
+
+            // Register as Apple-style AppBar – reserves top strip on the screen
+            _appBar = new AppBarManager(this, GetAppBarHeightPx());
+            _appBar.Register();
         }
 
         public void UpdateTrayButtons()
@@ -190,6 +194,9 @@ namespace aydocs.NotchWin.Main
 
             WindowPositionHelper.CenterWindowOnMonitor(this, clampedIndex);
             this.ResizeMode = ResizeMode.NoResize;
+
+            // Re-assert AppBar position on the new monitor
+            _appBar?.SetPosition();
 
             // Move the window in App.xaml.cs as well
             if (System.Windows.Application.Current is NotchWinMain app)
@@ -400,6 +407,24 @@ namespace aydocs.NotchWin.Main
         internal void DisposeTrayIcon()
         {
             _trayIcon.Dispose();
+            _appBar?.Dispose();
+        }
+
+        /// <summary>
+        /// Returns the height (physical pixels) NotchWin should reserve at the
+        /// top of the screen. Matches the DPI-adjusted island bar height.
+        /// </summary>
+        private static int GetAppBarHeightPx()
+        {
+            // Use the actual window height if available, otherwise fall back to 32 px.
+            double dpiScale = 1.0;
+            try
+            {
+                using var g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
+                dpiScale = g.DpiY / 96.0;
+            }
+            catch { }
+            return Math.Max(28, (int)(32 * dpiScale));
         }
 
         private void TrayIcon_MouseUp(object? sender, Forms.MouseEventArgs e)

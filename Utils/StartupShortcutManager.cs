@@ -1,62 +1,46 @@
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using IWshRuntimeLibrary;
 
 namespace aydocs.NotchWin.Utils
 {
-
     public class StartupShortcutManager
     {
-        private static string GetStartupFolderPath()
-        {
-            return Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-        }
-
-        private static string GetShortcutPath(string shortcutName)
-        {
-            return Path.Combine(GetStartupFolderPath(), $"{shortcutName}.lnk");
-        }
+        private const string RegistryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+        private const string AppName = "NotchWin";
 
         public static void CreateShortcut()
         {
-            string appPath = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
-            string shortcutPath = GetShortcutPath(appPath);
-
-            if (System.IO.File.Exists(shortcutPath))
+            try
             {
-                Console.WriteLine("Shortcut already exists.");
-                return;
+                string exePath = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+                if (string.IsNullOrEmpty(exePath)) return;
+
+                using var key = Registry.CurrentUser.OpenSubKey(RegistryKey, writable: true);
+                key?.SetValue(AppName, $"\"{exePath}\"");
             }
-
-            string exePath = Process.GetCurrentProcess().MainModule.FileName;
-
-            WshShell wshShell = new WshShell();
-            IWshShortcut shortcut = (IWshShortcut)wshShell.CreateShortcut(shortcutPath);
-            shortcut.TargetPath = exePath;
-            shortcut.WorkingDirectory = Path.GetDirectoryName(exePath);
-            shortcut.Description = "Launches the app on system startup.";
-            shortcut.Save();
-
-            Console.WriteLine("Shortcut created successfully.");
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[STARTUP] Failed to create startup entry: {ex.Message}");
+            }
         }
 
         public static bool RemoveShortcut()
         {
-            string appPath = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
-            string shortcutPath = GetShortcutPath(appPath);
-
-            if (System.IO.File.Exists(shortcutPath))
+            try
             {
-                System.IO.File.Delete(shortcutPath);
-                Console.WriteLine("Shortcut removed successfully.");
-                return true;
+                using var key = Registry.CurrentUser.OpenSubKey(RegistryKey, writable: true);
+                if (key?.GetValue(AppName) != null)
+                {
+                    key.DeleteValue(AppName);
+                    return true;
+                }
             }
-
-            Console.WriteLine("Shortcut does not exist.");
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[STARTUP] Failed to remove startup entry: {ex.Message}");
+            }
             return false;
         }
     }
-
 }
