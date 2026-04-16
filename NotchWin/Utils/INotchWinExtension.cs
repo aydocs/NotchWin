@@ -1,0 +1,18 @@
+using NotchWin.UI.Widgets;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NotchWin.Utils
+{
+    public interface INotchWinExtension
+    {
+        public string AuthorName { get; }
+        public string ExtensionName { get; }
+        public string ExtensionID { get; }
+        public void LoadExtension();
+        public List<IRegisterableWidget> GetExtensionWidgets();
+    }
+}
