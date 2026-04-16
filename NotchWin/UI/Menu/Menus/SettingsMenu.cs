@@ -52,7 +52,7 @@ namespace NotchWin.UI.Menu.Menus
             Settings.ToggleIslandShadow = toggleIslandShadow.IsChecked;
             Settings.ToggleHomeMenuShadow = toggleHomeMenuShadow.IsChecked;
             Settings.RunOnStartup = runOnStartup.IsChecked;
-            Settings.AlwaysTopmost = alwaysTopmost.IsChecked;
+            Settings.AlwaysTopmost = true;
 
             // Save the selected default big menu mode
             if (bigMenuModeSelector != null)
@@ -147,8 +147,9 @@ namespace NotchWin.UI.Menu.Menus
             objects.Add(workingAreaDisclaimer1);
             objects.Add(workingAreaDisclaimer2);
 
-            alwaysTopmost = new NWCheckbox(island, $"Keep interface always topmost", new Vec2(25, 0), new Vec2(25, 25), () => { }, UIAlignment.TopLeft);
-            alwaysTopmost.IsChecked = Settings.AlwaysTopmost;
+            alwaysTopmost = new NWCheckbox(island, $"Apple workspace mode (required)", new Vec2(25, 0), new Vec2(25, 25), () => { }, UIAlignment.TopLeft);
+            alwaysTopmost.IsChecked = true;
+            alwaysTopmost.IsEnabled = false;
             alwaysTopmost.Anchor.X = 0;
             objects.Add(alwaysTopmost);
 
@@ -479,25 +480,11 @@ namespace NotchWin.UI.Menu.Menus
                 Font = Res.SFProBold
             });
 
-            objects.Add(new NWText(island, "Maintained and developed by aydocs", new Vec2(25, -25), UIAlignment.TopLeft)
+            objects.Add(new NWText(island, "Created and developed by aydocs", new Vec2(25, -25), UIAlignment.TopLeft)
             {
                 Color = Theme.TextThird,
                 Anchor = new Vec2(0, 0.5f),
                 TextSize = 13,
-            });
-
-            objects.Add(new NWText(island, "Created by Florian Butz", new Vec2(25, -25), UIAlignment.TopLeft)
-            {
-                Color = Theme.TextThird,
-                Anchor = new Vec2(0, 0.5f),
-                TextSize = 13
-            });
-
-            objects.Add(new NWText(island, "Licenced under CC BY-SA 4.0", new Vec2(25, -25), UIAlignment.TopLeft)
-            {
-                Color = Theme.TextThird,
-                Anchor = new Vec2(0, 0.5f),
-                TextSize = 13
             });
 
             var backBtn = new NWTextButton(island, "Save changes", new Vec2(0, -45), new Vec2(250, 40), () => { SaveAndBack(); }, UIAlignment.BottomCenter)
