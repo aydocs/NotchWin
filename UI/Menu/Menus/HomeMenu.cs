@@ -42,7 +42,7 @@ namespace aydocs.NotchWin.UI.Menu.Menus
 
         public override Vec2 IslandSize()
         {
-            Vec2 size = new Vec2(200, 35);
+            Vec2 size = new Vec2(200 * Settings.IslandWidthScale, 35);
 
             float sizeTogether = 0f;
             smallLeftWidgets.ForEach(x => sizeTogether += x.GetWidgetSize().X);
@@ -62,7 +62,7 @@ namespace aydocs.NotchWin.UI.Menu.Menus
             if (currentBigMenuMode == BigMenuMode.Tray)
             {
                 // Tray mode
-                return new Vec2(350, 250);
+                return new Vec2(350 * Settings.IslandWidthScale, 250);
             }
             else if (currentBigMenuMode == BigMenuMode.Media)
             {
@@ -71,13 +71,13 @@ namespace aydocs.NotchWin.UI.Menu.Menus
                 float desiredMediaHeight = 110f;
                 float horizontalPadding = 60f;
                 float topContainerHeight = 30f;
-                float width = desiredMediaWidth + horizontalPadding;
+                float width = (desiredMediaWidth + horizontalPadding) * Settings.IslandWidthScale;
                 float height = desiredMediaHeight + bCD + topContainerHeight + topSpacing;
                 return new Vec2(width, height);
             }
             else // Widgets mode (default)
             {
-                Vec2 size = new Vec2(275, 145);
+                Vec2 size = new Vec2(275 * Settings.IslandWidthScale, 145);
 
                 float sizeTogetherBiggest = 0f;
                 float sizeTogether = 0f;

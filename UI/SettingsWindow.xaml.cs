@@ -47,6 +47,33 @@ namespace aydocs.NotchWin.UI
             topmostCb.Unchecked += (s, e) => Settings.AlwaysTopmost = false;
             AddDescription("Window stays on top of all other windows");
 
+            AddSection("Island Size");
+            var sizeLabel = new TextBlock
+            {
+                Text = $"Width: {Settings.IslandWidthScale:F2}x",
+                FontSize = 12,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 166, 166, 166)),
+                Margin = new Thickness(0, 0, 0, 8)
+            };
+            SettingsContent.Children.Add(sizeLabel);
+
+            var sizeSlider = new Slider
+            {
+                Style = FindResource("ModernSliderStyle") as Style,
+                Minimum = 0.5,
+                Maximum = 2.5,
+                Value = Settings.IslandWidthScale,
+                TickFrequency = 0.1,
+                IsSnapToTickEnabled = true
+            };
+            sizeSlider.ValueChanged += (s, e) =>
+            {
+                Settings.IslandWidthScale = (float)sizeSlider.Value;
+                sizeLabel.Text = $"Width: {Settings.IslandWidthScale:F2}x";
+            };
+            SettingsContent.Children.Add(sizeSlider);
+            AddDescription("Adjust the horizontal size of the island (0.5x - 2.5x)");
+
             AddSection("Monitor Selection");
             var monitorSelector = new ComboBox
             {

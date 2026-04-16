@@ -65,6 +65,11 @@ namespace aydocs.NotchWin.UI.UIElements
             _morphT = Settings.IslandMode == IslandMode.Notch ? 1f : 0f;
         }
 
+        public Vec2 GetScaledSize()
+        {
+            return new Vec2(200 * Settings.IslandWidthScale, 45);
+        }
+
         public override void Update(float deltaTime)
         {
             base.Update(deltaTime);

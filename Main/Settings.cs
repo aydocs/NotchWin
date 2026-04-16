@@ -28,6 +28,7 @@ namespace aydocs.NotchWin.Main
         private static int theme;
         private static int activeScreenIndex;
         private static bool alwaysTopmost;
+        private static float islandWidthScale = 1.0f;
 
         public static IslandObject.IslandMode IslandMode { get => islandMode; set => islandMode = value; }
         public static bool AllowBlur { get => allowBlur; set => allowBlur = value; }
@@ -40,6 +41,7 @@ namespace aydocs.NotchWin.Main
         public static bool RunOnStartup { get => runOnStartup; set => runOnStartup = value; }
         public static int Theme { get => theme; set => theme = value; }
         public static int ScreenIndex { get => activeScreenIndex; set => activeScreenIndex = value; }
+        public static float IslandWidthScale { get => islandWidthScale; set => islandWidthScale = Math.Clamp(value, 0.5f, 2.5f); }
         public static bool AlwaysTopmost
         {
             get => alwaysTopmost;
@@ -104,6 +106,8 @@ namespace aydocs.NotchWin.Main
                     RunOnStartup = (bool)SaveManager.Get("settings.runonstartup");
 
                     AlwaysTopmost = SaveManager.Contains("settings.AlwaysTopmost") ? (bool)SaveManager.Get("settings.AlwaysTopmost") : true;
+
+                    IslandWidthScale = SaveManager.Contains("settings.IslandWidthScale") ? (float)SaveManager.Get("settings.IslandWidthScale") : 1.0f;
 
                     Theme = (int)((Int64)SaveManager.Get("settings.theme"));
                     ScreenIndex = (int)((Int64)SaveManager.Get("settings.screenindex"));
@@ -261,6 +265,7 @@ namespace aydocs.NotchWin.Main
             SaveManager.Add("settings.ToggleHomeMenuShadow", ToggleHomeMenuShadow);
             SaveManager.Add("settings.runonstartup", RunOnStartup);
             SaveManager.Add("settings.AlwaysTopmost", AlwaysTopmost);
+            SaveManager.Add("settings.IslandWidthScale", IslandWidthScale);
 
             SaveManager.Add("settings.theme", Theme);
             SaveManager.Add("settings.screenindex", ScreenIndex);
