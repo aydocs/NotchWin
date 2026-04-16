@@ -1,0 +1,23 @@
+using aydocs.NotchWin.Main;
+using aydocs.NotchWin.Utils;
+using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace aydocs.NotchWin.UI.Widgets.Small
+{
+    public class SmallWidgetBase : WidgetBase
+    {
+        public SmallWidgetBase(UIObject? parent, Vec2 position, UIAlignment alignment = UIAlignment.TopCenter) : base(parent, position, alignment)
+        {
+            roundRadius = 5f;
+            isSmallWidget = true;
+        }
+
+        protected override float GetWidgetHeight() { return 24; }
+        protected override float GetWidgetWidth() { return 35; }
+    }
+}
